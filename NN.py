@@ -19,6 +19,7 @@ class NN():
         self.output_size = hyper_parameters["output_size"]
         self.hidden_layers_size = hyper_parameters["hidden_layers_size"]
         self.learning_rate = hyper_parameters["learning_rate"]
+        self.batch_size = hyper_parameters["batch_size"]
         self.function = hyper_parameters["function"]
 
         self.hidden_layers = self.hidden_layers_initialization()
@@ -28,6 +29,7 @@ class NN():
 
     def forward(self, x):
         index = 0
+        x = x.astype(np.float64)
         self.forward_results.append(np.dot(x,self.hidden_layers[index]))
         self.forward_results.append(self.function.relu(self.forward_results[index]))
 
@@ -39,9 +41,25 @@ class NN():
         self.forward_results.append(np.dot(self.forward_results[-1],self.hidden_layers[i]))
         self.forward_results.append(self.function.softmax(self.forward_results[-1]))
 
+    def backward(self, x, y):
+        loss = self.function.cross_entropy(self.forward_results[-1], y)
+        #print(loss)
+
+    def train(self, x, y):
+        self.forward(x)
+        self.backward(x, y)
+        self.set_values()
+
+        self.forward_results = []
+        self.backward_results = []
+
+    def set_values(self):
+        pass
+
     def xavier_initialization(self, rows, columns):
         # Xavier initialization for a layer
-        return np.random.randn(rows, columns).astype(np.float32) * np.sqrt(2.0/rows)
+        # return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/rows)
+        return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/self.batch_size)
 
     def hidden_layers_initialization(self):
         # Layers
