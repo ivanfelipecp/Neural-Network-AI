@@ -5,15 +5,14 @@ class LogLossSoftmax():
     # This is softmax
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
-        #print(x)
         e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=0) # only difference
+        return e_x / np.array([np.sum(e_x, axis=1)]).T # only difference
 
     def relu(self, x):
-        return np.maximum(x,0)
+        return x * (x > 0)
 
     def relu_prime(self, x):
-        return np.heaviside(x,0)
+        return 1. * (x > 0)#np.heaviside(x,0)
 
     def predict(self,x):
         return self.relu(x)

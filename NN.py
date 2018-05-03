@@ -31,12 +31,12 @@ class NN():
         self.forward_results.append(np.dot(x,self.hidden_layers[index]))
         self.forward_results.append(self.function.relu(self.forward_results[index]))
 
-        n = self.hidden_layers.shape[0]
+        n = self.hidden_layers.shape[0] - 1
         for i in range(1,n):
             self.forward_results.append(np.dot(self.forward_results[-1],self.hidden_layers[i]))
             self.forward_results.append(self.function.relu(self.forward_results[-1]))
-        # i += 1
-        #self.forward_results.append(np.dot(self.forward_results[-1],self.hidden_layers[i]))
+        i += 1
+        self.forward_results.append(np.dot(self.forward_results[-1],self.hidden_layers[i]))
         self.forward_results.append(self.function.softmax(self.forward_results[-1]))
 
     def xavier_initialization(self, rows, columns):

@@ -9,8 +9,9 @@ from LogLossSoftmax import LogLossSoftmax
 network = NN()
 
 mnist = fetch_mldata('MNIST original')    
-x = mnist.data[0:10]
-y = mnist.target[0:10]
+fin = 1
+x = mnist.data[0:fin]
+y = mnist.target[0:fin]
 
 hyper_parameters = {}
 function = LogLossSoftmax()
@@ -23,5 +24,5 @@ hyper_parameters["function"] = function
 
 network.config(hyper_parameters)
 network.forward(x)
-print(function.loss(network.forward_results[-1]))
-
+print(network.forward_results[-1])
+print(np.sum(network.forward_results[-1]))
