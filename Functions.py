@@ -24,8 +24,9 @@ class Functions():
     def predict(self,x):
         return self.relu(x)
 
-    def cross_entropy(self, predict):
-        loss = -np.log(predict)
+    def cross_entropy(self, predict, Y):
+        y = self.one_hot_encode(predict.shape, Y)
+        loss = np.mean(np.sum(np.nan_to_num(-y * np.log(predict) - (1 - y) * np.log(1 - predict)), axis = 1))
         #print("\nLoss: ",loss)
         return np.sum(loss) / predict.shape[0]
 
@@ -33,11 +34,25 @@ class Functions():
         predict[range(y.size),y] =- 1
         return predict
 
-    def one_hot_vector(self, output_size, y):
-        a = np.array(y)
-        b = np.zeros((a.shape[0],output_size))
-        b[np.arange(a.shape[0]),a] = 1
-        return b
+    def one_hot_encode(self, shape, Y):
+        y = np.zeros(shape)
+        y[np.arange(Y.shape[0]), Y] = 1
+        return y
 
     def dropout(self, X, dropout):
         return X * ((np.random.rand(*X.shape) < dropout) / dropout)
+
+    
+    def get_random_elements(self, batch_size, x, y):
+        r_X = []
+        r_Y = []
+        x = list(x)
+        y = list(y)
+        for i in range(batch_size):
+            ind = np.random.randint(0,len(x))
+            r_X.append(x[ind])
+            r_Y.append(y[ind])
+            del x[ind]
+            del y[ind]
+        
+        return np.array(r_X), np.array(r_Y), np.array(x), np.array(y)

@@ -13,6 +13,7 @@ class NN():
         self.function = None
         self.forward_results = None 
         self.backward_results = None
+        self.log_loss = None
 
     def config(self, hyper_parameters):
         self.input_size = hyper_parameters["input_size"]
@@ -27,6 +28,7 @@ class NN():
         self.hidden_layers = self.hidden_layers_initialization()
         self.forward_results = []
         self.backward_results = []
+        self.log_loss = []
 
 
     def forward(self, x):
@@ -40,49 +42,41 @@ class NN():
             self.forward_results.append(self.function.relu(lineal_dot))
         i += 1
         lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout),self.hidden_layers[i])
-        #self.forward_results.append(self.function.softmax(lineal_dot))
         return self.function.softmax(lineal_dot)
 
-    def backward(self, x, y, o):
-        loss = self.function.cross_entropy(o)
+    def backward(self, y, o):
+        loss = self.function.cross_entropy(o,y)
+        self.log_loss.append(loss)
         o_error = loss - o
         o_delta = o_error * self.function.cross_entropy_prime(o,y)
         self.backward_results.append(o_delta)
-
-
-        print("el len de forward result es...", len(self.forward_results))
-        print("el len de hidden result es...", len(self.hidden_layers))
         
         n = len(self.forward_results) + 1
-        #print(n)
-        #input()
         for i in reversed(range(1,n)):
             error = self.backward_results[-1].dot(self.hidden_layers[i].T)
-            #print(i)
             delta = error * self.function.relu_prime(self.forward_results[i-1])
             self.backward_results.append(delta)
-            #print(i)
-        
-        #print("el len de delta es",len(self.backward_results))
-        #input("asd...")
-
-        #print(o_delta)
-        #input()
-        #print(loss)
-
+    
     def train(self, x, y):
         o = self.forward(x)
-        self.backward(x,y,o)
-        #self.backward(x, y)
-        #self.set_values()
+        self.backward(y,o)
+        self.update(x)
 
-        #self.forward_results = []
-        #self.backward_results = []
+    def update(self, x):
 
-    
+        # Revierte los resultados del backward(derivadas o primes)
+        self.backward_results = self.backward_results[::-1]
 
-    def set_values(self):
-        pass
+        # Actualiza el primero
+        self.hidden_layers[0] += np.transpose(np.dot(np.transpose(x), self.backward_results[0])) * self.learning_rate
+        n = self.hidden_layers.shape[0]
+
+        # Actualiza todos los pesos
+        for i in range(1,n):
+            self.hidden_layers[i] += np.dot(np.transpose(self.forward_results[i-1]), self.backward_results[i]) * self.learning_rate
+
+        self.forward_results = []
+        self.backward_results = []
 
     def xavier_initialization(self, rows, columns):
         # Xavier initialization for a layer
