@@ -21,37 +21,65 @@ class NN():
         self.learning_rate = hyper_parameters["learning_rate"]
         self.batch_size = hyper_parameters["batch_size"]
         self.function = hyper_parameters["function"]
+        self.dropout = hyper_parameters["dropout"]
 
+    def reset(self):
         self.hidden_layers = self.hidden_layers_initialization()
         self.forward_results = []
         self.backward_results = []
 
 
     def forward(self, x):
-        index = 0
-        x = x.astype(np.float64)
-        self.forward_results.append(np.dot(x,self.hidden_layers[index]))
-        self.forward_results.append(self.function.relu(self.forward_results[index]))
+        i = 0
+        lineal_dot = np.dot(x, np.transpose(self.hidden_layers[0]))
+        self.forward_results.append(self.function.relu(lineal_dot))
 
         n = self.hidden_layers.shape[0] - 1
         for i in range(1,n):
-            self.forward_results.append(np.dot(self.forward_results[-1],self.hidden_layers[i]))
-            self.forward_results.append(self.function.relu(self.forward_results[-1]))
+            lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout), self.hidden_layers[i])
+            self.forward_results.append(self.function.relu(lineal_dot))
         i += 1
-        self.forward_results.append(np.dot(self.forward_results[-1],self.hidden_layers[i]))
-        self.forward_results.append(self.function.softmax(self.forward_results[-1]))
+        lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout),self.hidden_layers[i])
+        #self.forward_results.append(self.function.softmax(lineal_dot))
+        return self.function.softmax(lineal_dot)
 
-    def backward(self, x, y):
-        loss = self.function.cross_entropy(self.forward_results[-1], y)
+    def backward(self, x, y, o):
+        loss = self.function.cross_entropy(o)
+        o_error = loss - o
+        o_delta = o_error * self.function.cross_entropy_prime(o,y)
+        self.backward_results.append(o_delta)
+
+
+        print("el len de forward result es...", len(self.forward_results))
+        print("el len de hidden result es...", len(self.hidden_layers))
+        
+        n = len(self.forward_results) + 1
+        #print(n)
+        #input()
+        for i in reversed(range(1,n)):
+            error = self.backward_results[-1].dot(self.hidden_layers[i].T)
+            #print(i)
+            delta = error * self.function.relu_prime(self.forward_results[i-1])
+            self.backward_results.append(delta)
+            #print(i)
+        
+        #print("el len de delta es",len(self.backward_results))
+        #input("asd...")
+
+        #print(o_delta)
+        #input()
         #print(loss)
 
     def train(self, x, y):
-        self.forward(x)
-        self.backward(x, y)
-        self.set_values()
+        o = self.forward(x)
+        self.backward(x,y,o)
+        #self.backward(x, y)
+        #self.set_values()
 
-        self.forward_results = []
-        self.backward_results = []
+        #self.forward_results = []
+        #self.backward_results = []
+
+    
 
     def set_values(self):
         pass
@@ -65,25 +93,25 @@ class NN():
         # Layers
         hidden_layers = []
 
-        # Layer's size
+        # Layer's size [2,10]
         layers = np.append(self.hidden_layers_size,[self.output_size])
 
         # Current layer size
         current_layer = layers[0]
 
         # Add the first set of w's
-        hidden_layers.append(self.xavier_initialization(self.input_size, current_layer))
+        hidden_layers.append(self.xavier_initialization(current_layer, self.input_size))
 
         # Number of hidden layer's
         n = layers.shape[0]
 
         # Create the w's for each layer
-        for i in range(1,n-1):
+        for i in range(1,n):
             hidden_layers.append(self.xavier_initialization(current_layer, layers[i]))
             current_layer = layers[i]
 
         # Add the last set of w's
-        hidden_layers.append(self.xavier_initialization(current_layer, self.output_size))
+        #hidden_layers.append(self.xavier_initialization(current_layer, self.output_size))
 
         # Return the weights
         return np.array(hidden_layers)

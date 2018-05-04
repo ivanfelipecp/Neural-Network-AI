@@ -9,19 +9,27 @@ from Functions import Functions
 network = NN()
 
 mnist = fetch_mldata('MNIST original')    
-fin = 32
-x = mnist.data[0:fin]
-y = mnist.target[0:fin]
+fin = 2
+x = mnist.data[0:fin].astype(np.float64)
+y = mnist.target[0:fin].astype(np.int_)
+
+x = x / 255
 
 hyper_parameters = {}
 function = Functions()
 hyper_parameters["input_size"] = x[0].shape[0]
 hyper_parameters["output_size"] = 10
-hyper_parameters["hidden_layers_size"] = [2,3]
+hyper_parameters["hidden_layers_size"] = [200,100]
 hyper_parameters["learning_rate"] = 0.085
 hyper_parameters["function"] = function
 hyper_parameters["batch_size"] = fin
+hyper_parameters["dropout"] = 0.5
 # print(hyper_parameters)
 
 network.config(hyper_parameters)
+network.reset()
 network.train(x,y)
+#o = network.forward(x)
+#print(np.sum(o,axis=1))
+#for i in network.forward_results:
+    #print(i.shape)
