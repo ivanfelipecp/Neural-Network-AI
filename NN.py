@@ -34,12 +34,12 @@ class NN():
     def forward(self, x):
         i = 0
         lineal_dot = np.dot(x, np.transpose(self.hidden_layers[0]))
-        self.forward_results.append(self.function.relu(lineal_dot))
+        self.forward_results.append(self.function.activation(lineal_dot))
 
         n = self.hidden_layers.shape[0] - 1
         for i in range(1,n):
             lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout), self.hidden_layers[i])
-            self.forward_results.append(self.function.relu(lineal_dot))
+            self.forward_results.append(self.function.activation(lineal_dot))
         i += 1
         lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout),self.hidden_layers[i])
         return self.function.softmax(lineal_dot)
@@ -54,7 +54,7 @@ class NN():
         n = len(self.forward_results) + 1
         for i in reversed(range(1,n)):
             error = self.backward_results[-1].dot(self.hidden_layers[i].T)
-            delta = error * self.function.relu_prime(self.forward_results[i-1])
+            delta = error * self.function.activation_prime(self.forward_results[i-1])
             self.backward_results.append(delta)
     
     def train(self, x, y):
@@ -74,14 +74,16 @@ class NN():
         # Actualiza todos los pesos
         for i in range(1,n):
             self.hidden_layers[i] += np.dot(np.transpose(self.forward_results[i-1]), self.backward_results[i]) * self.learning_rate
+            # print("hidden layer",i)
+            # print(self.hidden_layers[i])
 
         self.forward_results = []
         self.backward_results = []
 
     def xavier_initialization(self, rows, columns):
         # Xavier initialization for a layer
-        # return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/rows)
-        return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/self.batch_size)
+         return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/rows)
+        # return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/self.batch_size)
 
     def hidden_layers_initialization(self):
         # Layers

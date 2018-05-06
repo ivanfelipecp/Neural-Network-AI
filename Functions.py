@@ -5,7 +5,7 @@ class Functions():
     # This is softmax
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
-        """ ivan
+        """
         e_x = np.exp(x - np.max(x))
         return e_x / np.array([np.sum(e_x, axis=1)]).T # only difference
         """
@@ -15,11 +15,29 @@ class Functions():
         suma = np.sum(e_x, 1)
         return  e_x / suma[:,None]
 
+    def activation(self, x):
+        return self.relu(x)
+        #return self.sigmoid(x)
+
+    def activation_prime(self, x):
+        return self.relu_prime(x)
+        #return self.sigmoid_prime(x)
+
+    def sigmoid(self, x):
+        # activation function 
+        return 1/(1+np.exp(-x))
+
+    def sigmoid_prime(self, x):
+    #derivative of sigmoid
+        return x * (1 - x)
+
     def relu(self, x):
-        return np.maximum(x,0)
+        #return np.maximum(x,0)
+        return x * (x > 0)
 
     def relu_prime(self, x):
-        return np.heaviside(x,0)
+        #return np.heaviside(x,0)
+        return 1. * (x > 0)
 
     def predict(self,x):
         return self.relu(x)
@@ -27,11 +45,10 @@ class Functions():
     def cross_entropy(self, predict, Y):
         y = self.one_hot_encode(predict.shape, Y)
         loss = np.mean(np.sum(np.nan_to_num(-y * np.log(predict) - (1 - y) * np.log(1 - predict)), axis = 1))
-        #print("\nLoss: ",loss)
         return np.sum(loss) / predict.shape[0]
 
     def cross_entropy_prime(self, predict, y):
-        predict[range(y.size),y] =- 1
+        predict[range(y.size),y] -= 1
         return predict
 
     def one_hot_encode(self, shape, Y):
