@@ -13,7 +13,8 @@ class NN():
         self.function = None
         self.forward_results = None 
         self.backward_results = None
-        self.log_loss = None
+        self.loss = None
+        self.drop = None
 
     def config(self, hyper_parameters):
         self.input_size = hyper_parameters["input_size"]
@@ -23,44 +24,58 @@ class NN():
         self.batch_size = hyper_parameters["batch_size"]
         self.function = hyper_parameters["function"]
         self.dropout = hyper_parameters["dropout"]
+        self.drop = []
 
     def reset(self):
         self.hidden_layers = self.hidden_layers_initialization()
         self.forward_results = []
         self.backward_results = []
-        self.log_loss = []
-
+        self.loss = []
 
     def forward(self, x):
-        i = 0
-        lineal_dot = np.dot(x, np.transpose(self.hidden_layers[0]))
+        lineal_dot = np.dot(x, self.hidden_layers[0])
         self.forward_results.append(self.function.activation(lineal_dot))
 
         n = self.hidden_layers.shape[0] - 1
         for i in range(1,n):
-            lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout), self.hidden_layers[i])
+            #lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout), self.hidden_layers[i])
+            lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[i])
+            #print("shape de dop",i,lineal_dot.shape)
             self.forward_results.append(self.function.activation(lineal_dot))
         i += 1
-        lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout),self.hidden_layers[i])
+        # lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout), self.hidden_layers[i])
+        lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[i])
+        #print("shape de softmax",lineal_dot.shape)
+        #input("waiting...")
         return self.function.softmax(lineal_dot)
 
-    def backward(self, y, o):
-        loss = self.function.cross_entropy(o,y)
-        self.log_loss.append(loss)
-        o_error = loss - o
-        o_delta = o_error * self.function.cross_entropy_prime(o,y)
+    def backward(self, o, y):
+        # Calcula el loss con one hot encode de y
+        #y = self.function.one_hot_encode(o.shape, y)
+        self.loss.append(self.function.cross_entropy(o,y))
+
+        # Calcula el delta
+        """o_error = o - y
+        o_delta =  self.loss[-1] * (o - y)"""
+        #print(self.loss[-1])
+        #input("sirvio....")
+        y = self.function.one_hot_encode(o.shape, y)
+        o_delta = self.function.cross_entropy_prime(o,y)
+        #o_delta *= self.loss[-1]
+        #print(o_delta.shape)
+        #input()
         self.backward_results.append(o_delta)
         
-        n = len(self.forward_results) + 1
+        n = len(self.hidden_layers)
         for i in reversed(range(1,n)):
+            #print(i)
             error = self.backward_results[-1].dot(self.hidden_layers[i].T)
             delta = error * self.function.activation_prime(self.forward_results[i-1])
+
+            # Intentando modificar esta picha
+            #error = self.backward_results[-1] * self.function.activation_prime(self.forward_results[i])
+            #delta = np.dot(error, self.hidden_layers[i-1])
             self.backward_results.append(delta)
-    
-    def train(self, x, y):
-        o = self.forward(x)
-        self.backward(y,o)
-        self.update(x)
 
     def update(self, x):
 
@@ -68,22 +83,28 @@ class NN():
         self.backward_results = self.backward_results[::-1]
 
         # Actualiza el primero
-        self.hidden_layers[0] += np.transpose(np.dot(np.transpose(x), self.backward_results[0])) * self.learning_rate
+        self.hidden_layers[0] += x.T.dot(self.backward_results[0]) * self.learning_rate #np.dot(np.transpose(x), self.backward_results[0]) * self.learning_rate
         n = self.hidden_layers.shape[0]
 
         # Actualiza todos los pesos
         for i in range(1,n):
-            self.hidden_layers[i] += np.dot(np.transpose(self.forward_results[i-1]), self.backward_results[i]) * self.learning_rate
-            # print("hidden layer",i)
-            # print(self.hidden_layers[i])
+            self.hidden_layers[i] += self.forward_results[i-1].T.dot(self.backward_results[i]) * self.learning_rate #np.dot(np.transpose(self.forward_results[i-1]), self.backward_results[i]) * self.learning_rate
 
         self.forward_results = []
         self.backward_results = []
+    
+    def train(self, x, y):
+        o = self.forward(x)
+        self.backward(o,y)
+        self.update(x)
+
+
 
     def xavier_initialization(self, rows, columns):
         # Xavier initialization for a layer
-         return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/rows)
-        # return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/self.batch_size)
+         return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/self.batch_size)
+        #return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/rows)
+        #return np.random.normal(0, 0.01,(rows, columns))
 
     def hidden_layers_initialization(self):
         # Layers
@@ -96,7 +117,7 @@ class NN():
         current_layer = layers[0]
 
         # Add the first set of w's
-        hidden_layers.append(self.xavier_initialization(current_layer, self.input_size))
+        hidden_layers.append(self.xavier_initialization(self.input_size, current_layer))
 
         # Number of hidden layer's
         n = layers.shape[0]
@@ -105,9 +126,6 @@ class NN():
         for i in range(1,n):
             hidden_layers.append(self.xavier_initialization(current_layer, layers[i]))
             current_layer = layers[i]
-
-        # Add the last set of w's
-        #hidden_layers.append(self.xavier_initialization(current_layer, self.output_size))
 
         # Return the weights
         return np.array(hidden_layers)
