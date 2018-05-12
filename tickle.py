@@ -2,7 +2,12 @@ import _pickle as pickle
 
 
 def save(nn_weights, name):
-	pickle.dump(nn_weights, open(name, "wb"))
+	file = open(name, "wb")
+	pickle.dump(nn_weights, file)
+	file.close()
 
 def load(name):
-	return pickle.load(open(name, "rb"))
+	file = open(name, "rb")
+	data = pickle.load(file)
+	file.close()
+	return data

@@ -49,39 +49,46 @@ class NN():
 
     def forward(self, x):
         lineal_dot = np.dot(x, self.hidden_layers[0])
+        lineal_dot = self.function.activation(lineal_dot)
+        #drop = self.function.dropout(lineal_dot, self.dropout)
+        #lineal_dot *= drop
         self.forward_results.append(self.function.activation(lineal_dot))
+        #self.drop.append(drop)
 
-        n = self.hidden_layers.shape[0] - 1
+        n = len(self.hidden_layers) - 1
         for i in range(1,n):
-            #lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout), self.hidden_layers[i])
             lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[i])
-            #print("shape de dop",i,lineal_dot.shape)
-            self.forward_results.append(self.function.activation(lineal_dot))
+            lineal_dot = self.function.activation(lineal_dot)
+            #drop = self.function.dropout(lineal_dot, self.dropout)
+            #lineal_dot *= drop
+            self.forward_results.append(lineal_dot)
+            #self.drop.append(drop)
         i += 1
-        # lineal_dot = np.dot(self.function.dropout(self.forward_results[-1],self.dropout), self.hidden_layers[i])
         lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[i])
-        #print("shape de softmax",lineal_dot.shape)
-        #input("waiting...")
-        return self.function.softmax(lineal_dot)
+        lineal_dot = self.function.softmax(lineal_dot)
+        return lineal_dot
 
     def backward(self, o, y):
         # El "y" se convierte en one hot encode
-        y = self.function.one_hot_encode(o.shape, y)
-
-        # Se calcula el loss, se agrega y se multiplica por la derivada y se agrega
+        #print(type(o),type(y))
+        #input()
+            
+        #y = self.function.one_hot_encode(o.shape, y)
         loss = self.function.cross_entropy(o,y)
+        # Se calcula el loss, se agrega y se multiplica por la derivada y se agrega
+        
         o_delta = loss * self.function.cross_entropy_prime(o,y)
         self.loss.append(loss)
         self.backward_results.append(o_delta)
         
         
-        n = self.hidden_layers.shape[0]
+        n = len(self.hidden_layers)
         # Back prop
         for i in reversed(range(1,n)):
             # Derivada por capa actual
             error = self.backward_results[-1].dot(self.hidden_layers[i].T)
             # Error por la derivada de la activacion
-            delta = error * self.function.activation_prime(self.forward_results[i-1])
+            delta = (error * self.function.activation_prime(self.forward_results[i-1])) #* self.drop[i-1]
             # Se añade a los pesos del backward
             self.backward_results.append(delta)
 
@@ -93,7 +100,7 @@ class NN():
         self.hidden_layers[0] += x.T.dot(self.backward_results[0]) * self.learning_rate #np.dot(np.transpose(x), self.backward_results[0]) * self.learning_rate
 
         # Actualiza todos los pesos
-        n = self.hidden_layers.shape[0]
+        n = len(self.hidden_layers)
         for i in range(1,n):
             self.hidden_layers[i] += self.forward_results[i-1].T.dot(self.backward_results[i]) * self.learning_rate #np.dot(np.transpose(self.forward_results[i-1]), self.backward_results[i]) * self.learning_rate
 
@@ -106,6 +113,9 @@ class NN():
         self.exactitud = []
     
     def train(self, x, y):
+        x = np.array(x)
+        y = np.array(y)
+
         o = self.forward(x)
         self.backward(o,y)
         self.update(x)
@@ -121,7 +131,8 @@ class NN():
 
     def xavier_initialization(self, rows, columns):
         # Xavier initialization for a layer
-         return np.random.randn(rows, columns) / np.sqrt(rows)#.astype(np.float64) * np.sqrt(2.0/self.batch_size)
+        # con esta esta funcando
+        return np.random.randn(rows, columns) / np.sqrt(rows)#.astype(np.float64) * np.sqrt(2.0/self.batch_size)
         #return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/rows)
         #return np.random.normal(0, 0.01,(rows, columns))
 
@@ -147,6 +158,6 @@ class NN():
             current_layer = layers[i]
 
         # Return the weights
-        return np.array(hidden_layers)
+        return hidden_layers
 
 
