@@ -27,12 +27,12 @@ class Functions():
         return probs"""
 
     def activation(self, x):
-        return self.relu(x)
-        #return self.sigmoid(x)
+        #return self.relu(x)
+        return self.sigmoid(x)
 
     def activation_prime(self, x):
-        return self.relu_prime(x)
-        #return self.sigmoid_prime(x)
+        #return self.relu_prime(x)
+        return self.sigmoid_prime(x)
 
     def sigmoid(self, x):
         # activation function 
@@ -59,12 +59,17 @@ class Functions():
         return np.log(np.clip(x,minval,maxval))
 
     def cross_entropy(self, p, y):
+        try:
+            return np.mean(np.sum(np.nan_to_num(-y * np.log(p) - (1 - y) * np.log(1 - p)), axis = 1))
+            #return np.mean(np.sum(np.nan_to_num(-y * self.safe_ln(p) - (1 - y) * self.safe_ln(1 - p)), axis = 1))
+        except RuntimeWarning:
+            input("Division con varas raras...")
         # Loss
-        y = self.one_hot_encode(p.shape, y)
-        return np.mean(np.sum(np.nan_to_num(-y * self.safe_ln(p) - (1 - y) * self.safe_ln(1 - p)), axis = 1))
+        #y = self.one_hot_encode(p.shape, y)
+        
         #loss = np.mean(np.sum(np.nan_to_num(-y * np.log(predict) - (1 - y) * np.log(1 - predict)), axis = 1))
         #return np.sum(loss) / predict.shape[0]
-
+        #return np.mean(np.sum(np.nan_to_num(-y * self.safe_ln(p) - (1 - y) * self.safe_ln(1 - p)), axis = 1))
         #return - np.multiply(y, np.log(predict))
 
         """i = range(p.shape[0])
@@ -82,7 +87,7 @@ class Functions():
         #p[range(y.size),y] -= 1
         #return p
         #y = self.one_hot_encode(p.shape, y)
-        return p - y
+        return y - p
 
         """m = y.shape[0]
         #grad = softmax(predict)
@@ -121,3 +126,9 @@ class Functions():
             del y[ind]
         
         return np.array(r_X), np.array(r_Y), np.array(x), np.array(y)
+
+    def exactitud(self, o, y):
+        
+        hit = np.argmax(o, axis=0)
+        hit = np.equal(hit,y)
+        return np.sum(hit) / o.shape[0]

@@ -25,12 +25,27 @@ class NN():
         self.function = hyper_parameters["function"]
         self.dropout = hyper_parameters["dropout"]
         self.drop = []
-
-    def reset(self):
-        self.hidden_layers = self.hidden_layers_initialization()
+        self.exactitud = []
+        self.loss = []
         self.forward_results = []
         self.backward_results = []
-        self.loss = []
+
+        if "hidden_layers" in hyper_parameters.keys():
+            self.hidden_layers = hyper_parameters["hidden_layers"]
+        else:
+            self.hidden_layers = self.hidden_layers_initialization()
+
+    def get_config(self):
+        d = {}
+        d["input_size"] = self.input_size
+        d["output_size"] = self.output_size
+        d["hidden_layers"] = self.hidden_layers
+        d["hidden_layers_size"] = self.hidden_layers_size
+        d["learning_rate"] = self.learning_rate
+        d["batch_size"] = self.batch_size
+        #d["function"] = self.function
+        d["dropout"] = self.dropout
+        return d
 
     def forward(self, x):
         lineal_dot = np.dot(x, self.hidden_layers[0])
@@ -50,59 +65,63 @@ class NN():
         return self.function.softmax(lineal_dot)
 
     def backward(self, o, y):
-        # Calcula el loss con one hot encode de y
-        #y = self.function.one_hot_encode(o.shape, y)
-        self.loss.append(self.function.cross_entropy(o,y))
-
-        # Calcula el delta
-        """o_error = o - y
-        o_delta =  self.loss[-1] * (o - y)"""
-        #print(self.loss[-1])
-        #input("sirvio....")
+        # El "y" se convierte en one hot encode
         y = self.function.one_hot_encode(o.shape, y)
-        o_delta = self.function.cross_entropy_prime(o,y)
-        #o_delta *= self.loss[-1]
-        #print(o_delta.shape)
-        #input()
+
+        # Se calcula el loss, se agrega y se multiplica por la derivada y se agrega
+        loss = self.function.cross_entropy(o,y)
+        o_delta = loss * self.function.cross_entropy_prime(o,y)
+        self.loss.append(loss)
         self.backward_results.append(o_delta)
         
-        n = len(self.hidden_layers)
+        
+        n = self.hidden_layers.shape[0]
+        # Back prop
         for i in reversed(range(1,n)):
-            #print(i)
+            # Derivada por capa actual
             error = self.backward_results[-1].dot(self.hidden_layers[i].T)
+            # Error por la derivada de la activacion
             delta = error * self.function.activation_prime(self.forward_results[i-1])
-
-            # Intentando modificar esta picha
-            #error = self.backward_results[-1] * self.function.activation_prime(self.forward_results[i])
-            #delta = np.dot(error, self.hidden_layers[i-1])
+            # Se añade a los pesos del backward
             self.backward_results.append(delta)
 
     def update(self, x):
-
         # Revierte los resultados del backward(derivadas o primes)
         self.backward_results = self.backward_results[::-1]
 
         # Actualiza el primero
         self.hidden_layers[0] += x.T.dot(self.backward_results[0]) * self.learning_rate #np.dot(np.transpose(x), self.backward_results[0]) * self.learning_rate
-        n = self.hidden_layers.shape[0]
 
         # Actualiza todos los pesos
+        n = self.hidden_layers.shape[0]
         for i in range(1,n):
             self.hidden_layers[i] += self.forward_results[i-1].T.dot(self.backward_results[i]) * self.learning_rate #np.dot(np.transpose(self.forward_results[i-1]), self.backward_results[i]) * self.learning_rate
 
+    def clean(self):
         self.forward_results = []
         self.backward_results = []
+
+    def reset(self):
+        self.loss = []
+        self.exactitud = []
     
     def train(self, x, y):
         o = self.forward(x)
         self.backward(o,y)
         self.update(x)
+        self.clean()
+        #self.exactitud.append(self.function.exactitud(o,y))
 
+    def classify(self, x, y):
+        o = self.forward(x)
+        exactitud = self.function.exactitud(o,y)
+        self.exactitud.append(exactitud)
+        self.clean()
 
 
     def xavier_initialization(self, rows, columns):
         # Xavier initialization for a layer
-         return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/self.batch_size)
+         return np.random.randn(rows, columns) / np.sqrt(rows)#.astype(np.float64) * np.sqrt(2.0/self.batch_size)
         #return np.random.randn(rows, columns).astype(np.float64) * np.sqrt(2.0/rows)
         #return np.random.normal(0, 0.01,(rows, columns))
 

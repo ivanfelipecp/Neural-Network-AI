@@ -1,0 +1,4 @@
+parametros:
+   nombre entrenar/clasificar epocs neuronas
+
+python3 testing.py prueba1 
