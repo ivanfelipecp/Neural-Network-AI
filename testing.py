@@ -6,9 +6,6 @@ from Functions import Functions
 import tickle
 import sys
 import random
-import warnings
-warnings.simplefilter("error")
-
 
 mnist = fetch_mldata('MNIST original')    
 
@@ -37,7 +34,7 @@ try:
 	print("*** Cargo la config ***")
 	hyper_parameters = tickle.load(nombre)
 	hyper_parameters["function"] = function
-except Warning:
+except:
 	print("*** Creo la config ***")
 	hyper_parameters["input_size"] = x[0].shape[0]
 	hyper_parameters["output_size"] = 10

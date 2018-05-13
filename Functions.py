@@ -1,6 +1,5 @@
 import numpy as np
-import warnings
-warnings.simplefilter("error")
+
 
 class Functions():
 
@@ -169,9 +168,5 @@ class Functions():
     def exactitud(self, o, y):
         
         hit = np.argmax(o, axis=1)
-        #print("o",o)
-        #print("hit",hit)
-        #print("y",y)
-        #input()
         hit = np.equal(hit,y)
         return np.sum(hit) * 100 / o.shape[0]
