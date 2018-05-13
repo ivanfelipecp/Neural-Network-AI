@@ -1,5 +1,5 @@
 import numpy as np
-
+from Functions import Functions
 class NN():
     def __init__(self):
 
@@ -22,8 +22,9 @@ class NN():
         self.hidden_layers_size = hyper_parameters["hidden_layers_size"]
         self.learning_rate = hyper_parameters["learning_rate"]
         self.batch_size = hyper_parameters["batch_size"]
-        self.function = hyper_parameters["function"]
+        #self.function = hyper_parameters["function"]
         self.dropout = hyper_parameters["dropout"]
+        self.function = Functions()
         self.drop = []
         self.exactitud = []
         self.loss = []
@@ -107,7 +108,8 @@ class NN():
     def clean(self):
         self.forward_results = []
         self.backward_results = []
-
+        self.drop = []
+        
     def reset(self):
         self.loss = []
         self.exactitud = []
