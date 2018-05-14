@@ -165,7 +165,7 @@ class Functions():
         
         return np.array(r_X), np.array(r_Y), np.array(x), np.array(y)
 
-    def exactitud(self, o, y):
+    def accuracy(self, o, y):
         
         hit = np.argmax(o, axis=1)
         hit = np.equal(hit,y)

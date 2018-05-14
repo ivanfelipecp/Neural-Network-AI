@@ -26,7 +26,7 @@ class NN():
         self.dropout = hyper_parameters["dropout"]
         self.function = Functions()
         self.drop = []
-        self.exactitud = []
+        self.accuracy = []
         self.loss = []
         self.forward_results = []
         self.backward_results = []
@@ -112,7 +112,7 @@ class NN():
         
     def reset(self):
         self.loss = []
-        self.exactitud = []
+        self.accuracy = []
     
     def train(self, x, y):
         x = np.array(x)
@@ -122,14 +122,17 @@ class NN():
         self.backward(o,y)
         self.update(x)
         self.clean()
-        #self.exactitud.append(self.function.exactitud(o,y))
+        #self.accuracy.append(self.function.accuracy(o,y))
 
     def classify(self, x, y):
         o = self.forward(x)
-        exactitud = self.function.exactitud(o,y)
-        self.exactitud.append(exactitud)
+        accuracy = self.function.accuracy(o,y)
+        self.accuracy.append(accuracy)
         self.clean()
 
+    def classify_image(self, x):
+        o = self.forward(x)
+        return np.argmax(o, axis=1)[0]
 
     def xavier_initialization(self, rows, columns):
         # Xavier initialization for a layer

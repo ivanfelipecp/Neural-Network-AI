@@ -40,13 +40,13 @@ class GUI(object):
         self.classify_error = "Eso no es un archivo binario"
 
         #Label
-        self.classify_label = Label(self.classify_frame,text=self.choose_text,bg=classify_color,fg="white")
+        self.classify_label = Label(self.classify_frame,text=self.classify_text,bg=classify_color,fg="white")
         self.classify_label.grid(row=0,column=0)
         # Boton
         self.classify_button = Button(self.classify_frame,text="Cargar y clasificar",command=self.load_and_classify,width=30,bg="white")
         self.classify_button.grid(row=1,column=0)
         # Label
-        self.classify_msg = Label(self.classify_frame,text="Es un 69",bg=classify_color,fg="white")
+        self.classify_msg = Label(self.classify_frame,text="",bg=classify_color,fg="white")
         self.classify_msg.grid(row=2,column=0)
 
 
@@ -63,14 +63,13 @@ class GUI(object):
         self.nn_input.grid(row=1,column=0)
         self.nn_output = Label(self.nn_frame,text=prueba,bg=nn_color,fg="white")
         self.nn_output.grid(row=2,column=0)
-        self.nn_batch = Label(self.nn_frame,text=prueba,bg=nn_color,fg="white")
-        self.nn_batch.grid(row=3,column=0)
+        self.nn_hidden = Label(self.nn_frame,text=prueba,bg=nn_color,fg="white")
+        self.nn_hidden.grid(row=3,column=0)
+        self.nn_drop = Label(self.nn_frame,text=prueba,bg=nn_color,fg="white")
+        self.nn_drop.grid(row=4,column=0)
         self.nn_learning = Label(self.nn_frame,text=prueba,bg=nn_color,fg="white")
-        self.nn_learning.grid(row=4,column=0)
-        self.nn_loss = Label(self.nn_frame,text=prueba,bg=nn_color,fg="white")
-        self.nn_loss.grid(row=5,column=0)
-        self.nn_accuracy = Label(self.nn_frame,text=prueba,bg=nn_color,fg="white")
-        self.nn_accuracy.grid(row=6,column=0)
+        self.nn_learning.grid(row=5,column=0)
+        
 
         # Label del titulo
         #self.title = Label(self.root,text="Seleccione el archivo pickle para cargarlo")
@@ -118,6 +117,12 @@ class GUI(object):
                 # todo
                 text = self.set_file(file)
                 self.choose_label.config(text=text)
+                self.nn_label.config(text=extension)
+                self.nn_input.config(text=self.controller.get_input_size())
+                self.nn_output.config(text=self.controller.get_output_size())
+                self.nn_hidden.config(text=self.controller.get_hidden_layers())
+                self.nn_drop.config(text=self.controller.get_dropout())
+                self.nn_learning.config(text=self.controller.get_learning_rate())
             else:
                 # selecciono uno con extension
                 self.choose_label.config(text=self.choose_error)
@@ -132,10 +137,13 @@ class GUI(object):
         if image:
             # selecciono una img
             # todo
-            self.classify_msg.config(text=self.classify_wait)
-            text = self.classification(image)
-            self.classify_msg.config(text=text)
-            self.play(self.guitar)
+            #self.classify_msg.config(text=self.classify_wait)
+            msg = self.classify(image)
+            if msg:
+                self.play(self.guitar)
+            else:
+                msg = "No se ha cargado la red neuronal"
+            self.classify_msg.config(text=msg)
         else:
             # selecciono uno con extension
             self.classify_msg.config(text=self.classify_text)
