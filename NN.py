@@ -51,21 +51,26 @@ class NN():
     def forward(self, x):
         lineal_dot = np.dot(x, self.hidden_layers[0])
         lineal_dot = self.function.activation(lineal_dot)
-        #drop = self.function.dropout(lineal_dot, self.dropout)
-        #lineal_dot *= drop
+        drop = self.function.dropout(lineal_dot, self.dropout)
+        lineal_dot *= drop
         self.forward_results.append(self.function.activation(lineal_dot))
-        #self.drop.append(drop)
+        self.drop.append(drop)
 
+        i = -1
         n = len(self.hidden_layers) - 1
         for i in range(1,n):
             lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[i])
             lineal_dot = self.function.activation(lineal_dot)
-            #drop = self.function.dropout(lineal_dot, self.dropout)
-            #lineal_dot *= drop
+            drop = self.function.dropout(lineal_dot, self.dropout)
+            lineal_dot *= drop
             self.forward_results.append(lineal_dot)
-            #self.drop.append(drop)
+            self.drop.append(drop)
+
         i += 1
-        lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[i])
+        if i == 0:
+            lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[1])
+        else:
+            lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[i])
         lineal_dot = self.function.softmax(lineal_dot)
         return lineal_dot
 
@@ -84,27 +89,43 @@ class NN():
         
         
         n = len(self.hidden_layers)
+        #input(str(n))
         # Back prop
+        #if n != 2:
         for i in reversed(range(1,n)):
             # Derivada por capa actual
             error = self.backward_results[-1].dot(self.hidden_layers[i].T)
             # Error por la derivada de la activacion
-            delta = (error * self.function.activation_prime(self.forward_results[i-1])) #* self.drop[i-1]
+            delta = (error * self.function.activation_prime(self.forward_results[i-1])) * self.drop[i-1]
             # Se añade a los pesos del backward
             self.backward_results.append(delta)
+        """else:
+            for i in reversed(range(1,n)):
+                # Derivada por capa actual
+                error = self.backward_results[-1].dot(self.hidden_layers[i].T)
+                # Error por la derivada de la activacion
+                delta = (error * self.function.activation_prime(self.forward_results[i-1])) #* self.drop[i-1]
+                # Se añade a los pesos del backward
+                self.backward_results.append(delta)"""
 
     def update(self, x):
         # Revierte los resultados del backward(derivadas o primes)
+        n = len(self.hidden_layers)
+        #if n!=2:
         self.backward_results = self.backward_results[::-1]
 
         # Actualiza el primero
         self.hidden_layers[0] += x.T.dot(self.backward_results[0]) * self.learning_rate #np.dot(np.transpose(x), self.backward_results[0]) * self.learning_rate
 
         # Actualiza todos los pesos
-        n = len(self.hidden_layers)
+
         for i in range(1,n):
             self.hidden_layers[i] += self.forward_results[i-1].T.dot(self.backward_results[i]) * self.learning_rate #np.dot(np.transpose(self.forward_results[i-1]), self.backward_results[i]) * self.learning_rate
-
+        """else:
+            self.backward_results = self.backward_results[::-1]
+            self.hidden_layers[0] += x.T.dot(self.backward_results[0]) * self.learning_rate
+            for i in range(1,n):                
+                self.hidden_layers[i] += self.forward_results[i-1].T.dot(self.backward_results[i]) * self.learning_rate"""
     def clean(self):
         self.forward_results = []
         self.backward_results = []

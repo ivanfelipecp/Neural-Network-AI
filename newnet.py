@@ -107,6 +107,7 @@ def entrenar():
 			i2 = i1 + batch_size
 			train_x = x[i1:i2]
 			train_y = y[i1:i2]
+			#print(i)
 			network.train(train_x, train_y)
 			x = x[:i1] + x[i2:]
 			y = y[:i1] + y[i2:]

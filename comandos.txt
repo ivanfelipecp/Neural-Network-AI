@@ -1,3 +1,10 @@
 parametros:
 	programa  neuronas learning_rate dropout epochs archivo entrenar/clasificar
 python3 newnet.py [10,8] 0.0085 0.5 10 prueba1 entrenar
+
+
+python3 newnet.py [128,64] 0.0085 0.5 150 net1 entrenar
+python3 newnet.py [200,100] 0.0085 0.5 150 net2  entrenar
+python3 newnet.py [64,32,16,8,4,2] 0.0085 0.5 150 net3  entrenar
+
+python3 newnet.py [32,16] 0.0085 0.5 150 beta entrenar

@@ -23,11 +23,19 @@ class Functions():
         """
 
         # ESTA FUNCAAA
+        #exp_scores += np.max(exp_scores)
+        x += np.max(x)
         exp_scores = np.exp(x - np.max(x, axis=-1, keepdims=True))
+        #exp_scores += np.max(exp_scores)
         exp_scores = exp_scores / np.sum(exp_scores, axis=-1, keepdims=True)
+        return exp_scores
+
+        # ESTA FUNCAAA
+        #exp_scores = np.exp(x - np.max(x, axis=-1, keepdims=True))
+        #exp_scores = exp_scores / np.sum(exp_scores, axis=-1, keepdims=True)
         #print(exp_scores)
         #input()
-        return exp_scores
+        #return exp_scores
 
 
         """e_x = np.exp(x - np.max(x))
@@ -91,6 +99,10 @@ class Functions():
         return np.log(np.clip(x,minval,maxval))
 
     def cross_entropy(self, p, y):
+        """
+        y = self.one_hot_encode(p.shape, y)
+        return np.mean(np.sum(np.nan_to_num(-y * np.log(p) - (1 - y) * np.log(1 - p)), axis = 1))
+        """
         #return np.mean(np.sum(np.nan_to_num(-y * self.safe_ln(p) - (1 - y) * self.safe_ln(1 - p)), axis = 1))
         """try:
             return np.mean(np.sum(np.nan_to_num(-y * np.log(p) - (1 - y) * np.log(1 - p)), axis = 1))
@@ -110,16 +122,26 @@ class Functions():
 
         #y = self.one_hot_encode(p.shape, y)
         # este cross es el que estoy usando
-        
+        #y = self.one_hot_encode(p.shape, y)
+        #return - np.sum(np.multiply(p, np.log(y)) + np.multiply((1-p), np.log(1-y)))
+
+         
+        # funca
         i = range(p.shape[0])
+        #p += np.max(p)
         L_i = -np.log(p[i,y.astype(int)[i]])
         loss = 1/L_i.shape[0] * np.sum(L_i)
         return loss
+        
 
-        """m = y.shape[0]
-        log_likelihood = -np.log(predict[range(m),y])
+
+        
+        """
+        m = y.shape[0]
+        log_likelihood = -np.log(p[range(m),y])
         loss = np.sum(log_likelihood) / m
-        return np.sum(loss) / predict.shape[0]"""
+        return np.sum(loss) / p.shape[0]
+        """
 
     def cross_entropy_prime(self, p, y):
         #p[range(y.size),y] -= 1
@@ -138,8 +160,11 @@ class Functions():
         y[np.arange(Y.shape[0]), Y] = 1
         return y.astype(np.int_)
 
-    def dropout(self, x, dropout):
-        return (np.random.rand(*x.shape) < dropout) / dropout
+    def dropout(self, x, drop_rate):
+        for i in range(int(x.shape[0] * drop_rate)):
+            ind = np.random.randint(0,len(x))
+            x[ind].fill(0)
+        return x
         #return np.random.binomial(size=X.shape[1], n=1, p=dropout)/dropout
 
     def make_y(self, shape, y):
