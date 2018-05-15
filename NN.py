@@ -153,7 +153,7 @@ class NN():
 
     def classify_image(self, x):
         o = self.forward(x)
-        return np.argmax(o, axis=1)[0]
+        return np.argmax(o, axis=1)
 
     def xavier_initialization(self, rows, columns):
         # Xavier initialization for a layer

@@ -11,11 +11,13 @@ class Controller():
         self.nn = NN()
         self.nn.config(tickle.load(file))
         return "Archivo seteado con éxito"
-    def classify(self,image):
+    def classify(self,images):
     	msg = False
     	if self.nn:
-    		img = cv2.imread(image,cv2.IMREAD_GRAYSCALE)
-    		msg = str(self.nn.classify_image([img.flatten()]))
+    		imgs = []
+    		for i in images:
+    			imgs.append(cv2.imread(i,cv2.IMREAD_GRAYSCALE).flatten())
+    		msg = str(self.nn.classify_image(imgs))
     	return msg
     def get_input_size(self):
     	return "Input size: "+ str(self.nn.input_size)

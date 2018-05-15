@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter.filedialog import askopenfilenames
 from tkinter.filedialog import askopenfilename
 from tkinter import messagebox
 from Controller import Controller
@@ -132,13 +133,12 @@ class GUI(object):
 
 
     def load_and_classify(self):
-        image = askopenfilename(filetypes=self.images_extensions)
-
-        if image:
+        images = askopenfilenames(filetypes=self.images_extensions)
+        if images:
             # selecciono una img
             # todo
             #self.classify_msg.config(text=self.classify_wait)
-            msg = self.classify(image)
+            msg = self.classify(images)
             if msg:
                 self.play(self.guitar)
             else:
