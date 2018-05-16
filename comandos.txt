@@ -12,3 +12,8 @@ python3 newnet.py [32,16,8,4,2] 0.0085 0.5 200 ivannet entrenar
 python3 newnet.py [128,64,32] 0.0085 0.5 200 skynet entrenar
 python3 newnet.py [8] 0.0085 0.5 200 one64 entrenar
 python3 newnet.py [12] 0.0085 0.5 200 one64 entrenar
+python3 newnet.py [12,10,8,6,4,2] 0.0085 0.5 150 longnet entrenar
+
+
+
+python3 newnet.py [4,2] 0.0085 0.5 150 42 entrenar

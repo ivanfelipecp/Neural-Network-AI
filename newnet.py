@@ -76,6 +76,7 @@ def clasificar():
 	n = int(test / test_size)
 	x = test_data
 	y = test_labels
+	network.train_state = False
 	for i in range(n-1):
 		i1 = test_size * random.randint(0,n-i-1)
 		i2 = i1 + test_size
@@ -97,7 +98,7 @@ def entrenar():
 	n = int(train / batch_size)
 	epoch = int(sys.argv[4])
 	loss_epoch = []
-	#loss_total = []
+	
 	accuracy_epoch = []
 	for e in range(epoch):
 		x = train_data
@@ -114,8 +115,8 @@ def entrenar():
 		e_loss = np.sum(np.array(network.loss)) / n
 		loss_epoch.append(np.sum(np.array(network.loss)) / n)
 		accuracy_epoch.append(clasificar())
-		#loss_total += network.loss
 		network.reset()
+		network.train_state = True
 	plot_graphic(name, loss_epoch, accuracy_epoch)
 	tickle.save(network.get_config(), name)
 	print("*** Red guardada como "+name+" ***")

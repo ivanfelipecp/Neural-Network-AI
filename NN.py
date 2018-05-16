@@ -15,6 +15,7 @@ class NN():
         self.backward_results = None
         self.loss = None
         self.drop = None
+        self.train_state = None
 
     def config(self, hyper_parameters):
         self.input_size = hyper_parameters["input_size"]
@@ -30,6 +31,7 @@ class NN():
         self.loss = []
         self.forward_results = []
         self.backward_results = []
+        self.train_state = True
 
         if "hidden_layers" in hyper_parameters.keys():
             self.hidden_layers = hyper_parameters["hidden_layers"]
@@ -51,17 +53,17 @@ class NN():
     def forward(self, x):
         lineal_dot = np.dot(x, self.hidden_layers[0])
         lineal_dot = self.function.activation(lineal_dot)
-        drop = self.function.dropout(lineal_dot, self.dropout)
+        drop = self.function.dropout(lineal_dot, self.dropout) if self.train else 1
         lineal_dot *= drop
         self.forward_results.append(self.function.activation(lineal_dot))
-        self.drop.append(drop)
+        #self.drop.append(drop)
 
         i = -1
         n = len(self.hidden_layers) - 1
         for i in range(1,n):
             lineal_dot = np.dot(self.forward_results[-1], self.hidden_layers[i])
             lineal_dot = self.function.activation(lineal_dot)
-            drop = self.function.dropout(lineal_dot, self.dropout)
+            drop = drop = self.function.dropout(lineal_dot, self.dropout) if self.train else 1
             lineal_dot *= drop
             self.forward_results.append(lineal_dot)
             self.drop.append(drop)
@@ -75,13 +77,7 @@ class NN():
         return lineal_dot
 
     def backward(self, o, y):
-        # El "y" se convierte en one hot encode
-        #print(type(o),type(y))
-        #input()
-            
-        #y = self.function.one_hot_encode(o.shape, y)
         loss = self.function.cross_entropy(o,y)
-        # Se calcula el loss, se agrega y se multiplica por la derivada y se agrega
         
         o_delta = loss * self.function.cross_entropy_prime(o,y)
         self.loss.append(loss)
@@ -96,7 +92,7 @@ class NN():
             # Derivada por capa actual
             error = self.backward_results[-1].dot(self.hidden_layers[i].T)
             # Error por la derivada de la activacion
-            delta = (error * self.function.activation_prime(self.forward_results[i-1])) * self.drop[i-1]
+            delta = (error * self.function.activation_prime(self.forward_results[i-1])) #* self.drop[i-1]
             # Se añade a los pesos del backward
             self.backward_results.append(delta)
         """else:

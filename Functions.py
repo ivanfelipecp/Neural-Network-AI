@@ -83,17 +83,17 @@ class Functions():
         return x * (1 - x)
 
     def relu(self, x):
-        #return np.maximum(x,0,x)
+        return np.maximum(x,0,x)
         #return np.maximum(0,x)
         #return x * (x > 0)
 
         # esta es la que funca
-        x[x<0] = 0
-        return x
+        #x[x<0] = 0
+        #return x
 
     def relu_prime(self, x):
-        #return np.heaviside(x,0)
-        return 1. * (x > 0)
+        return np.heaviside(x,0)
+        #return 1. * (x > 0)
 
     def safe_ln(self, x, minval=0.00001, maxval = 0.1):
         return np.log(np.clip(x,minval,maxval))
